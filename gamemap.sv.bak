@@ -1,0 +1,5 @@
+module gamemap(input [9:0] DrawX, DrawY, output logic isBoard, output logic [9:0] spriteX, spriteY)
+
+
+
+endmodule

@@ -1,0 +1,86 @@
+case(pointSprite[(72 * (DrawY % 12)) + (DrawX % 12)])
+	4'd0:	//DEDEDE
+	begin
+		Red = 8'hDE;
+		Green = 8'hDE;
+		Blue = 8'hDE;
+	end
+	4'd1:	//DE0000
+	begin
+		Red = 8'hDE;
+		Green = 8'h00;
+		Blue = 8'h00;
+	end
+	4'd2:	//FFB5B5
+	begin
+		Red = 8'hFF;
+		Green = 8'hB5;
+		Blue = 8'hB5;
+	end
+	4'd3: //DE944A
+	begin
+		Red = 8'hDE;
+		Green = 8'h94;
+		Blue = 8'h4A;
+	end
+	4'd4:	//FFB521
+	begin
+		Red = 8'hFF;
+		Green = 8'hB5;
+		Blue = 8'h21;
+	end
+	4'd5:	//4A4A00
+	begin
+		Red = 8'h4A;
+		Green = 8'h4A;
+		Blue = 8'h00;
+	end
+	4'd6:	//949400
+	begin
+		Red = 8'h94;
+		Green = 8'h94;
+		Blue = 8'h00;
+	end
+	4'd7:	//FFFF21
+	begin
+		Red = 8'hFF;
+		Green = 8'hFF;
+		Blue = 8'h21;
+	end
+	4'd8:	//00DE00
+	begin
+		Red = 8'h00;
+		Green = 8'hDE;
+		Blue = 8'h00;
+	end
+	4'd9:	//00DEDE
+	begin
+		Red = 8'h00;
+		Green = 8'hDE;
+		Blue = 8'hDE;
+	end
+	4'd10:	//216BFF
+	begin
+		Red = 8'h21;
+		Green = 8'h6B;
+		Blue = 8'hFF;
+	end
+	4'd11:	//2121FF
+	begin
+		Red = 8'h21;
+		Green = 8'h21;
+		Blue = 8'hFF;
+	end
+	4'd12: //FFB5FF
+	begin
+		Red = 8'hFF;
+		Green = 8'hB5;
+		Blue = 8'hFF;
+	end
+	default:
+	begin
+		Red = Red;
+		Green = Green;
+		Blue = Blue;
+	end
+endcase

@@ -1,0 +1,6 @@
+module points(input [9:0] DrawX, DrawY, output logic is_map);
+
+
+
+
+endmodule
