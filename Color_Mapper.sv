@@ -16,7 +16,9 @@
 // color_mapper: Decide which color to be output to VGA for each pixel.
 module  color_mapper ( input              is_ball,            // Whether current pixel belongs to ball 
                        input        [9:0] DrawX, DrawY,       // Current pixel coordinates
-							  input 					is_map, is_point, is_pellet,
+							  input 					is_map, is_point, is_pellet, is_pacman,
+							  input			[3:0]	pacman_sprite,
+							  input 			[9:0] pacmanPosX, pacmanPosY,
                        output logic [7:0] VGA_R, VGA_G, VGA_B // VGA RGB output
                      );
     
@@ -32,12 +34,14 @@ module  color_mapper ( input              is_ball,            // Whether current
 	 //logic [3:0] spritesheet[0:92159];
 	 logic [3:0] map[0:134663];
 	 logic [3:0] pointSprite[0:863];
+	 logic [3:0] pacman_sprites[0:5183];
 	 
 	 initial
 	 begin
 		//$readmemh("assets/pacman.txt", spritesheet);
 		$readmemh("assets/map.txt", map);
 		$readmemh("assets/points.txt", pointSprite);
+		$readmemh("assets/pacman_sprites.txt", pacman_sprites);
 	 end
 	 
 	  
@@ -127,6 +131,39 @@ module  color_mapper ( input              is_ball,            // Whether current
 				end
 			endcase
 
+			
+			case(is_pacman)
+				default:
+				begin
+					Red = Red;
+					Green = Green;
+					Blue = Blue;
+				end
+				1'b1:
+				begin
+					case(pacman_sprites[(216 * (DrawY - pacmanPosY - 6)) + (DrawX - pacmanPosX) + (24*pacman_sprite)])
+						4'd6:	//949400
+						begin
+							Red = 8'h94;
+							Green = 8'h94;
+							Blue = 8'h00;
+						end
+						4'd7:	//FFFF21
+						begin
+							Red = 8'hFF;
+							Green = 8'hFF;
+							Blue = 8'h21;
+						end
+						default:
+						begin
+							Red = Red;
+							Green = Green;
+							Blue = Blue;
+						end
+					endcase
+				end
+			
+			endcase
     end 
     
 endmodule

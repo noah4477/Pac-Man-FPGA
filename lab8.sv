@@ -60,10 +60,13 @@ module lab8( input               CLOCK_50,
     
 	 //Extra logic to connect components
 	 logic [9:0] DrawX, DrawY;
-	 logic is_ball, is_map, is_point, is_pellet;
+	 logic is_ball, is_map, is_point, is_pellet, is_pacman;
+	 logic [3:0] pacman_sprite;
+	 logic [9:0] pacmanPosX, pacmanPosY;
 	 
 	 gamemap game_map(.*);
 	 points points_map(.*);
+	 pacman pacman_controller(.*, .Reset(Reset_h), .frame_clk(VGA_VS));
 	 
     // Interface between NIOS II and EZ-OTG chip
     hpi_io_intf hpi_io_inst(
@@ -119,17 +122,11 @@ module lab8( input               CLOCK_50,
 
     // Which signal should be frame_clk?
     ball ball_instance(.*, .Reset(Reset_h), .frame_clk(VGA_VS));
-    
+   
     color_mapper color_instance(.*);
     
     // Display keycode on hex display
     HexDriver hex_inst_0 (keycode[3:0], HEX0);
     HexDriver hex_inst_1 (keycode[7:4], HEX1);
-    
-    /**************************************************************************************
-        ATTENTION! Please answer the following quesiton in your lab report! Points will be allocated for the answers!
-        Hidden Question #1/2:
-        What are the advantages and/or disadvantages of using a USB interface over PS/2 interface to
-             connect to the keyboard? List any two.  Give an answer in your Post-Lab.
-    **************************************************************************************/
+
 endmodule
