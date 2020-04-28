@@ -53,10 +53,6 @@ module lab8( input               CLOCK_50,
     always_ff @ (posedge Clk) begin
         Reset_h <= ~(KEY[0]);        // The push buttons are active low
     end
-    
-	 always_ff @ (posedge VGA_VS) begin
-        Reset_h_fk <= ~(KEY[0]);        // The push buttons are active low
-    end
 	 
     logic [1:0] hpi_addr;
     logic [15:0] hpi_data_in, hpi_data_out;
@@ -64,16 +60,19 @@ module lab8( input               CLOCK_50,
     
 	 //Extra logic to connect components
 	 logic [9:0] DrawX, DrawY;
-	 logic is_ball, is_map, is_point, is_pellet, is_pacman;
-	 logic [3:0] pacman_sprite;
+	 logic is_ball, is_map, is_point, is_pellet, is_pacman, is_scoreboard;
+	 logic [3:0] pacman_sprite, scoreboard_sprite;
 	 logic [9:0] pacmanPosX, pacmanPosY;
 	 logic [3:0] currentDirection;
-	 
+	 logic [19:0] score;
+	 logic is_scoreboard_1up;
+	 logic [1:0] scoreboard_1up_sprite;
 	 
 	 gamemap game_map(.*);
 	 points points_map(.*, .Reset(Reset_h));
-	 
-	 
+	 scoreboard scoreboard_(.*, .frame_clk(VGA_VS));
+	 pacman pacman_controller(.*, .Reset(Reset_h), .frame_clk(VGA_VS));
+		 
     // Interface between NIOS II and EZ-OTG chip
     hpi_io_intf hpi_io_inst(
                             .Clk(Clk),
@@ -126,7 +125,7 @@ module lab8( input               CLOCK_50,
     // TODO: Fill in the connections for the rest of the modules 
     VGA_controller vga_controller_instance(.*, .Reset(Reset_h));
    
-    color_mapper color_instance(.*, .Reset(Reset_h), .frame_clk(VGA_VS));
+    color_mapper color_instance(.*);
     
     // Display keycode on hex display
     HexDriver hex_inst_0 (keycode[3:0], HEX0);

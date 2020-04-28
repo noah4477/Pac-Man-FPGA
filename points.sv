@@ -1,4 +1,5 @@
-module points(input Reset, input Clk, is_pacman, input [3:0] currentDirection, input [9:0] pacmanPosX, pacmanPosY, input [9:0] DrawX, DrawY, output logic is_point, is_pellet);
+module points(input Reset, input Clk, is_pacman, input [3:0] currentDirection, input [9:0] pacmanPosX, pacmanPosY,
+				  input [9:0] DrawX, DrawY, output is_point, is_pellet, output [19:0] score);
 
 	 logic[0:30][0:27] points;
 	 logic[0:30][0:27] pellets;
@@ -68,6 +69,8 @@ module points(input Reset, input Clk, is_pacman, input [3:0] currentDirection, i
 		points[28] = 28'h4009002;
 		points[29] = 28'h7FFFFFE;
 		points[30] = 28'h0;
+		
+		score <= 0;
 	end
 	
 	
@@ -155,50 +158,28 @@ module points(input Reset, input Clk, is_pacman, input [3:0] currentDirection, i
 			points[28] <= 28'h4009002;
 			points[29] <= 28'h7FFFFFE;
 			points[30] <= 28'h0;
-		end
-		if(is_pacman)
-		begin
-			if(is_point)
-			begin
-				case(currentDirection)
-					3'd1:	//LEFT
-					begin
-						if(pacmanPosX + 10 < ((DrawX/12) * 12) + 8 && ((pacmanPosY + 11 > (DrawY/12) * 12) + 4) && ((pacmanPosY + 11 < (DrawY/12) * 12) + 8))
-						begin
-							points[(((pacmanPosY + 11)/12) - 6)][(((pacmanPosX + 10)/12) - 6)] <= 0;
-						end
-					end
-//					3'd2:	//UP
-//					begin
-//						if()
-//						begin
-//							points[((DrawY/12) - 6)][((DrawX/12) - 6)] <= 0;
-//						end
-//					end
-//					3'd3:	//RIGHT
-//					begin
-//						if()
-//						begin
-//							points[((DrawY/12) - 6)][((DrawX/12) - 6)] <= 0;
-//						end
-//					end
-//					3'd4:	//Down
-//					begin
-//						if()
-//						begin
-//							points[((DrawY/12) - 6)][((DrawX/12) - 6)] <= 0;
-//						end
-//					end
-				endcase
 			
+			score <= 0;
+		end
+			if(is_point && is_pacman)
+			begin
+				if(points[(((pacmanPosY + 12)/12) - 6)][(((pacmanPosX + 8)/12) - 6)] != 0)
+				begin
+					points[(((pacmanPosY + 12)/12) - 6)][(((pacmanPosX + 8)/12) - 6)] <= 0;
+					score <= score + 10;
+				end
 				
 			end
 			
-//			if(is_pellet)
-//			begin
-//				pellets[((DrawY/12) - 6)][((DrawX/12) - 6)] <= 0;
-//			end
-		end
+			if(is_pellet && is_pacman)
+			begin
+				if(pellets[(((pacmanPosY + 12)/12) - 6)][(((pacmanPosX + 8)/12) - 6)] != 0)
+				begin
+					pellets[(((pacmanPosY + 12)/12) - 6)][(((pacmanPosX + 8)/12) - 6)] <= 0;
+					score <= score + 50;
+				end
+				
+			end
 		
 	end
 endmodule

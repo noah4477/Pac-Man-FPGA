@@ -1,0 +1,5 @@
+module scoreboard(input frame_clk, input [9:0] output is_score, score_sprite);
+
+
+
+endmodule

@@ -15,14 +15,11 @@
 
 // color_mapper: Decide which color to be output to VGA for each pixel.
 module  color_mapper ( 
-							  input 						Clk, frame_clk, Reset,
-							  input              	is_ball,            // Whether current pixel belongs to ball 
                        input        	[9:0] DrawX, DrawY,       // Current pixel coordinates
-							  input 						is_map, is_point, is_pellet,
-							  input 		logic [7:0] keycode,
-							  output 			[9:0] pacmanPosX, pacmanPosY,
-							  output 			[3:0] currentDirection,
-							  output				is_pacman,
+							  input 						is_map, is_point, is_pellet, is_scoreboard, is_pacman, is_scoreboard_1up,
+							  input			[3:0] scoreboard_sprite, pacman_sprite,
+							  input 			[9:0] pacmanPosX, pacmanPosY,
+							  input			[1:0] scoreboard_1up_sprite,
                        output logic [7:0] VGA_R, VGA_G, VGA_B // VGA RGB output
                      );
 
@@ -32,17 +29,16 @@ module  color_mapper (
     assign VGA_R = Red;
     assign VGA_G = Green;
     assign VGA_B = Blue;
-    
-	 
 	 
 	 //logic [3:0] spritesheet[0:92159];
 	 
 	 logic [3:0] pointSprite[0:863];
 	 logic [3:0] pacman_sprites[0:5183];
 	 logic map[0:134663];
-	 logic [3:0] pacman_sprite;
+	 logic number_sprites[0:2303];	//192 x 12
+	 logic alphabet_sprites[0:4319];	//260 x 12
 	 
-	 pacman pacman_controller(.*);
+
 	 
 	 initial
 	 begin
@@ -50,6 +46,8 @@ module  color_mapper (
 		$readmemb("assets/map.txt", map);
 		$readmemh("assets/points.txt", pointSprite);
 		$readmemh("assets/pacman_sprites.txt", pacman_sprites);
+		$readmemb("assets/numbers.txt", number_sprites);
+		$readmemb("assets/alphabet.txt", alphabet_sprites);
 	 end
 	 
 	 
@@ -181,7 +179,62 @@ module  color_mapper (
 				Blue = 8'hB5;
 			end
 			
+			if(is_scoreboard)
+			begin
+				case(number_sprites[(192 * ((DrawY + 6) % 12)) + (DrawX % 12) + (12*scoreboard_sprite)])
+						1'b1:
+						begin
+							Red = 8'hFF;
+							Green = 8'hFF;
+							Blue = 8'hFF;
+						end
+						default:
+						begin
+							Red = Red;
+							Green = Green;
+							Blue = Blue;
+						end
+					endcase
+			end
 			
+			if(is_scoreboard_1up)
+			begin
+				case(scoreboard_1up_sprite)
+					2'b00:
+					begin
+						case(number_sprites[(192 * (DrawY % 12)) + (DrawX % 12) + (12*1)])
+							1'b1:
+							begin
+								Red = 8'hFF;
+								Green = 8'hFF;
+								Blue = 8'hFF;
+							end
+						endcase
+					end
+					2'b01:
+					begin
+						case(alphabet_sprites[(360 * (DrawY % 12)) + (DrawX % 12) + (12*20)])
+							1'b1:
+							begin
+								Red = 8'hFF;
+								Green = 8'hFF;
+								Blue = 8'hFF;
+							end
+						endcase
+					end
+					2'b10:
+					begin
+						case(alphabet_sprites[(360 * (DrawY % 12)) + (DrawX % 12) + (12*15)])
+							1'b1:
+							begin
+								Red = 8'hFF;
+								Green = 8'hFF;
+								Blue = 8'hFF;
+							end
+						endcase
+					end
+				endcase
+			end
     end 
     
 endmodule

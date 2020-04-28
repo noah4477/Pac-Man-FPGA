@@ -247,9 +247,6 @@ begin
 		up_fr9: Next_state = up_fr1;
 	endcase
 	
-	if(currentDirection == 0)
-		Next_state = Halted;
-	
 	case (State)
 		Halted: pacman_sprite = 4'd8;
 		

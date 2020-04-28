@@ -50,7 +50,6 @@ module valid_moves(input [9:0] pacmanPosX, pacmanPosY, output [3:0] availible_di
 			availible_dir[2] = 1'b1;
 			
 		//vertical movement
-//		if(moveable[((pacmanPosY + 11) / 12) - 6 ][((pacmanPosX + 12) / 12) - 6] == 1'b1 && ((pacmanPosX + 7 % 12 == 0) || (pacmanPosX + 6 % 12 == 0) || (pacmanPosX + 5 % 12 == 0)))
 		if(moveable[((pacmanPosY + 11) / 12) - 6 ][((pacmanPosX + 11) / 12) - 6] == 1'b1 && (pacmanPosX % 12 == 5 || pacmanPosX % 12 == 6 || pacmanPosX % 12 == 7))
 			availible_dir[1] = 1'b1;
 		if(moveable[((pacmanPosY + 24) / 12) - 6 ][((pacmanPosX + 11) / 12) - 6] == 1'b1 && (pacmanPosX % 12 == 5 || pacmanPosX % 12 == 6 || pacmanPosX % 12 == 7))
