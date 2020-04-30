@@ -1,5 +1,5 @@
 //-------------------------------------------------------------------------
-//    Color_Mapper.sv                                                    --
+//    Color_Mapper.sv             X                                         --
 //    Stephen Kempf                                                      --
 //    3-1-06                                                             --
 //                                                                       --
@@ -13,14 +13,17 @@
 //    University of Illinois ECE Department                              --
 //-------------------------------------------------------------------------
 
-// color_mapper: Decide which color to be output to VGA for each pixel.
+// color_mapper: Decide which color to be 								 to VGA for each pixel.
 module  color_mapper ( 
                        input        	[9:0] DrawX, DrawY,       // Current pixel coordinates
-							  input 						is_map, is_point, is_pellet, is_scoreboard, is_pacman, is_scoreboard_1up,
+							  input 					is_map, is_point, is_pellet, is_scoreboard, is_pacman, is_scoreboard_1up, is_pacman_life,
+							  input					is_blinky,
+							  input 			[3:0] blinky_sprite, 
 							  input			[3:0] scoreboard_sprite, pacman_sprite,
 							  input 			[9:0] pacmanPosX, pacmanPosY,
+							  input 			[9:0] blinkyPosX, blinkyPosY,
 							  input			[1:0] scoreboard_1up_sprite,
-                       output logic [7:0] VGA_R, VGA_G, VGA_B // VGA RGB output
+							  output logic [7:0] VGA_R, VGA_G, VGA_B // VGA RGB 								
                      );
 
     logic [7:0] Red, Green, Blue;
@@ -37,7 +40,7 @@ module  color_mapper (
 	 logic map[0:134663];
 	 logic number_sprites[0:2303];	//192 x 12
 	 logic alphabet_sprites[0:4319];	//260 x 12
-	 
+	 logic [3:0] blinky_sprites[0:4607];	//192 X 24
 
 	 
 	 initial
@@ -48,6 +51,7 @@ module  color_mapper (
 		$readmemh("assets/pacman_sprites.txt", pacman_sprites);
 		$readmemb("assets/numbers.txt", number_sprites);
 		$readmemb("assets/alphabet.txt", alphabet_sprites);
+		$readmemh("assets/blinky.txt", blinky_sprites);
 	 end
 	 
 	 
@@ -172,6 +176,41 @@ module  color_mapper (
 				end
 			
 			endcase
+			
+			case(is_blinky)
+				1'b1:
+				begin
+					case(blinky_sprites[192 * (DrawY - blinkyPosY - 6) + (DrawX - blinkyPosX) + (24*blinky_sprite)])
+						//0, 1, b, f
+						4'd0:	//DEDEDE
+						begin
+							Red = 8'hDE;
+							Green = 8'hDE;
+							Blue = 8'hDE;
+						end
+						4'd1:	//DE0000
+						begin
+							Red = 8'hDE;
+							Green = 8'h00;
+							Blue = 8'h00;
+						end
+						4'd11:	//2121FF
+						begin
+							Red = 8'h21;
+							Green = 8'h21;
+							Blue = 8'hFF;
+						end
+					endcase
+				end
+				default:
+				begin
+					Red = Red;
+					Green = Green;
+					Blue = Blue;
+				end
+			endcase
+			
+			
 			if((pacmanPosY == DrawY && pacmanPosX == DrawX) || ((pacmanPosY == DrawY - 12) && (pacmanPosX == DrawX)))
 			begin
 				Red = 8'hFF;
@@ -232,6 +271,29 @@ module  color_mapper (
 								Blue = 8'hFF;
 							end
 						endcase
+					end
+				endcase
+			end
+			if(is_pacman_life)
+			begin
+				case(pacman_sprites[(216 * ((DrawY + 6) % 24)) + (DrawX % 24)])
+					4'd6:	//949400
+					begin
+						Red = 8'h94;
+						Green = 8'h94;
+						Blue = 8'h00;
+					end
+					4'd7:	//FFFF21
+					begin
+						Red = 8'hFF;
+						Green = 8'hFF;
+						Blue = 8'h21;
+					end
+					default:
+					begin
+						Red = Red;
+						Green = Green;
+						Blue = Blue;
 					end
 				endcase
 			end

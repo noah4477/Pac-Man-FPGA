@@ -1,0 +1,6 @@
+module pacman_lives(input [1:0] lives, input [9:0] DrawX, DrawY, output pacman_life);
+
+	
+
+
+endmodule

@@ -60,19 +60,23 @@ module lab8( input               CLOCK_50,
     
 	 //Extra logic to connect components
 	 logic [9:0] DrawX, DrawY;
-	 logic is_ball, is_map, is_point, is_pellet, is_pacman, is_scoreboard;
-	 logic [3:0] pacman_sprite, scoreboard_sprite;
+	 logic is_ball, is_map, is_point, is_pellet, is_pacman, is_scoreboard, is_pacman_life, is_blinky;
+	 logic [3:0] pacman_sprite, scoreboard_sprite, blinky_sprite;
 	 logic [9:0] pacmanPosX, pacmanPosY;
-	 logic [3:0] currentDirection;
+	 logic [3:0] currentDirection, BlinkycurrentDirection;
 	 logic [19:0] score;
 	 logic is_scoreboard_1up;
 	 logic [1:0] scoreboard_1up_sprite;
+	 logic [1:0] lives = 2'b10;
+	 logic [9:0] blinkyPosX, blinkyPosY;
 	 
 	 gamemap game_map(.*);
 	 points points_map(.*, .Reset(Reset_h));
-	 scoreboard scoreboard_(.*, .frame_clk(VGA_VS));
+	 scoreboard scoreboard_(.*);
 	 pacman pacman_controller(.*, .Reset(Reset_h), .frame_clk(VGA_VS));
-		 
+	 ghost_blinky blinky_controller(.*, .PacmanCurrentDir(currentDirection), .Reset(Reset_h), .frame_clk(VGA_VS));
+	 pacman_lives(.*);
+	 
     // Interface between NIOS II and EZ-OTG chip
     hpi_io_intf hpi_io_inst(
                             .Clk(Clk),

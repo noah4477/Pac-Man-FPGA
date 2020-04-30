@@ -1,4 +1,4 @@
-module valid_moves(input [9:0] pacmanPosX, pacmanPosY, output [3:0] availible_dir);
+module valid_moves(input [9:0] PosX, PosY, input is_Ghost ,output [3:0] availible_dir);
 
 	logic[0:30][0:27] moveable;
 
@@ -44,15 +44,15 @@ module valid_moves(input [9:0] pacmanPosX, pacmanPosY, output [3:0] availible_di
 		availible_dir = 4'h0;
 		
 		//horizontal movement
-		if(moveable[((pacmanPosY + 17) / 12) - 6 ][((pacmanPosX + 5) / 12) - 6] == 1'b1 && ((pacmanPosY) % 12 == 0 || (pacmanPosY) % 12 == 1 || (pacmanPosY) % 12 == 11) && moveable[((pacmanPosY + 18) / 12) - 6 ][((pacmanPosX + 5) / 12) - 6] == 1'b1)
+		if(moveable[((PosY + 17) / 12) - 6 ][((PosX + 5) / 12) - 6] == 1'b1 && ((PosY) % 12 == 0 || (PosY) % 12 == 1 || (PosY) % 12 == 11) && moveable[((PosY + 18) / 12) - 6 ][((PosX + 5) / 12) - 6] == 1'b1)
 			availible_dir[0] = 1'b1;
-		if(moveable[((pacmanPosY + 17) / 12) - 6 ][((pacmanPosX + 18) / 12) - 6] == 1'b1 && ((pacmanPosY) % 12 == 0 || (pacmanPosY) % 12 == 1 || (pacmanPosY) % 12 == 11) && moveable[((pacmanPosY + 18) / 12) - 6 ][((pacmanPosX + 18) / 12) - 6] == 1'b1)
+		if(moveable[((PosY + 17) / 12) - 6 ][((PosX + 18) / 12) - 6] == 1'b1 && ((PosY) % 12 == 0 || (PosY) % 12 == 1 || (PosY) % 12 == 11) && moveable[((PosY + 18) / 12) - 6 ][((PosX + 18) / 12) - 6] == 1'b1)
 			availible_dir[2] = 1'b1;
 			
 		//vertical movement
-		if(moveable[((pacmanPosY + 11) / 12) - 6 ][((pacmanPosX + 11) / 12) - 6] == 1'b1 && (pacmanPosX % 12 == 5 || pacmanPosX % 12 == 6 || pacmanPosX % 12 == 7))
+		if(moveable[((PosY + 11) / 12) - 6 ][((PosX + 11) / 12) - 6] == 1'b1 && (PosX % 12 == 5 || PosX % 12 == 6 || PosX % 12 == 7))
 			availible_dir[1] = 1'b1;
-		if(moveable[((pacmanPosY + 24) / 12) - 6 ][((pacmanPosX + 11) / 12) - 6] == 1'b1 && (pacmanPosX % 12 == 5 || pacmanPosX % 12 == 6 || pacmanPosX % 12 == 7))
+		if(moveable[((PosY + 24) / 12) - 6 ][((PosX + 11) / 12) - 6] == 1'b1 && (PosX % 12 == 5 || PosX % 12 == 6 || PosX % 12 == 7))
 			availible_dir[3] = 1'b1;
 		
 		

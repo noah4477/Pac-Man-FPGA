@@ -12,8 +12,10 @@ enum logic [5:0] { Halted,
 						up_fr1, up_fr2, up_fr3, up_fr4, up_fr5, up_fr6, up_fr7, up_fr8, up_fr9,
 						down_fr1, down_fr2, down_fr3, down_fr4, down_fr5, down_fr6, down_fr7, down_fr8, down_fr9} State, Next_state;
 	
+	logic correct_state;
+	
 	logic [3:0] availible_dir;
-	valid_moves moves(.*);
+	valid_moves moves(.*, .PosX(pacmanPosX), .PosY(pacmanPosY), .is_Ghost(0));
 	
 	initial
 	begin
@@ -34,7 +36,7 @@ begin
 
 	is_pacman = 1'b0;
 	
-	if((DrawY - pacmanPosY - 6 < 24) && (DrawY - pacmanPosY - 6 >= 0) && (DrawX - pacmanPosX < 24) && (DrawX - pacmanPosX >= 0))
+	if((DrawY - pacmanPosY - 6 < 24) && (DrawY - pacmanPosY - 6 >= 0) && (DrawX - pacmanPosX < 24) && (DrawX - pacmanPosX >= 0) && DrawX >= 72 && DrawX < 408)
 		is_pacman = 1'b1;
 
 	nextDirection_ = 0;
@@ -115,10 +117,14 @@ begin
 			begin
 				if(availible_dir[3])
 					pacmanPosY <= pacmanPosY + 1;
-			end
-			
-			
+			end			
 		endcase
+		
+		if(pacmanPosX + 24 < 72)
+			pacmanPosX <= 408;
+		else if(pacmanPosX - 24 > 408)
+			pacmanPosX <= 48;
+		
 		if(nextDirection != currentDirection)
 		begin
 			case(nextDirection)
@@ -159,23 +165,23 @@ begin
 		case(currentDirection)
 			3'd1: 
 			begin
-				if(~availible_dir[0])
-					currentDirection <= 0;
+				if(~availible_dir[0] || ~correct_state)
+					State <= left_fr3;
 			end
 			3'd2:
 			begin
-				if(~availible_dir[1])
-					currentDirection <= 0;
+				if(~availible_dir[1] || ~correct_state)
+					State <= up_fr3;
 			end
 			3'd3:
 			begin
-				if(~availible_dir[2])
-					currentDirection <= 0;
+				if(~availible_dir[2] || ~correct_state)
+					State <= right_fr3;
 			end
 			3'd4:
 			begin
-				if(~availible_dir[3])
-					currentDirection <= 0;
+				if(~availible_dir[3] || ~correct_state)
+					State <= down_fr3;
 			end
 		
 		endcase
@@ -292,6 +298,37 @@ begin
 		down_fr9: pacman_sprite = 4'd7;
 		
 	endcase
+	
+	correct_state = 1'b0;
+	
+	case(currentDirection)
+		3'd1: 
+			begin
+				if(State == left_fr1 || State == left_fr2 || State == left_fr3 || State == left_fr4 || State == left_fr5 ||
+				State == left_fr6 || State == left_fr7 || State == left_fr8 || State == left_fr9)
+					correct_state = 1'b1;
+			end
+			3'd2:
+			begin
+				if(State == up_fr1 || State == up_fr2 || State == up_fr3 || State == up_fr4 || State == up_fr5 ||
+				State == up_fr6 || State == up_fr7 || State == up_fr8 || State == up_fr9)
+					correct_state = 1'b1;
+			end
+			3'd3:
+			begin
+				if(State == right_fr1 || State == right_fr2 || State == right_fr3 || State == right_fr4 || State == right_fr5 ||
+				State == right_fr6 || State == right_fr7 || State == right_fr8 || State == right_fr9)
+					correct_state = 1'b1;
+			end
+			3'd4:
+			begin
+				if(State == down_fr1 || State == down_fr2 || State == down_fr3 || State == down_fr4 || State == down_fr5 ||
+				State == down_fr6 || State == down_fr7 || State == down_fr8 || State == down_fr9)
+					correct_state = 1'b1;
+			end
+	
+	endcase
+	
 end
 	
 	

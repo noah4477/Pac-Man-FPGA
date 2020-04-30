@@ -1,4 +1,4 @@
-module scoreboard(input frame_clk, input [9:0] DrawX, DrawY, input [19:0] score, output is_scoreboard, 
+module scoreboard(input [9:0] DrawX, DrawY, input [19:0] score, output is_scoreboard, 
 						output [3:0] scoreboard_sprite, output is_scoreboard_1up, output [1:0] scoreboard_1up_sprite);
 
 	always_comb
