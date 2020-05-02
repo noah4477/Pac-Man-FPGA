@@ -1,0 +1,12 @@
+module next_dir(input [10:0] targetX, targetY, ghostPosX, ghostPosY,input [3:0] availible_dir, currentDirection, output [3:0] nextDirection);
+
+	logic [10:0] distance1, distance2, distance3;
+	
+	always_comb
+	begin
+			
+	end
+
+
+
+endmodule

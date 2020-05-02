@@ -37,7 +37,9 @@ module valid_moves(input [9:0] PosX, PosY, input is_Ghost ,output [3:0] availibl
 		moveable[30] = 28'h0;
 	end
 	
-	
+
+
+
 	always_comb
 	begin
 	

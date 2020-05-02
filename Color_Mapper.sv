@@ -18,11 +18,12 @@ module  color_mapper (
                        input        	[9:0] DrawX, DrawY,       // Current pixel coordinates
 							  input 					is_map, is_point, is_pellet, is_scoreboard, is_pacman, is_scoreboard_1up, is_pacman_life,
 							  input					is_blinky,
-							  input 			[3:0] blinky_sprite, 
+							  input 			[3:0] blinky_sprite, BlinkycurrentDirection,
 							  input			[3:0] scoreboard_sprite, pacman_sprite,
 							  input 			[9:0] pacmanPosX, pacmanPosY,
 							  input 			[9:0] blinkyPosX, blinkyPosY,
 							  input			[1:0] scoreboard_1up_sprite,
+							  input 			[3:0] availible_dir,
 							  output logic [7:0] VGA_R, VGA_G, VGA_B // VGA RGB 								
                      );
 
@@ -296,6 +297,110 @@ module  color_mapper (
 						Blue = Blue;
 					end
 				endcase
+			end
+			if(availible_dir[0])	// LEFT UP RIGHT DOWN
+			begin
+				if(DrawY >= 450 && DrawY < 450 + 12)
+				begin
+					if(DrawX >= 168 && DrawX < 168 + 12)
+					begin
+						case(alphabet_sprites[(360 * ((DrawY + 6) % 12)) + (DrawX % 12) + (12*11)])
+							1'b1:
+							begin
+								if(BlinkycurrentDirection == 4'd1)
+								begin
+									Red = 8'hFF;
+									Green = 8'h00;
+									Blue = 8'h00;
+								end
+								else
+								begin
+								Red = 8'hFF;
+								Green = 8'hFF;
+								Blue = 8'hFF;
+								end
+							end
+						endcase
+					end
+				end
+			end
+			if(availible_dir[1])	//up
+			begin
+				if(DrawY >= 450 && DrawY < 450 + 12)
+				begin
+					if(DrawX >= 168 + 12 && DrawX < 168 + 24)
+					begin
+						case(alphabet_sprites[(360 * ((DrawY + 6) % 12)) + (DrawX % 12) + (12*20)])
+							1'b1:
+							begin
+								if(BlinkycurrentDirection == 4'd2)
+								begin
+									Red = 8'hFF;
+									Green = 8'h00;
+									Blue = 8'h00;
+								end
+								else
+								begin
+								Red = 8'hFF;
+								Green = 8'hFF;
+								Blue = 8'hFF;
+								end
+							end
+						endcase
+					end
+				end
+			end
+			if(availible_dir[2])
+			begin
+				if(DrawY >= 450 && DrawY < 450 + 12)
+				begin
+					if(DrawX >= 168 + 24 && DrawX < 168 + 36)
+					begin
+						case(alphabet_sprites[(360 * ((DrawY + 6) % 12)) + (DrawX % 12) + (12*17)])
+							1'b1:
+							begin
+								if(BlinkycurrentDirection == 4'd3)
+								begin
+									Red = 8'hFF;
+									Green = 8'h00;
+									Blue = 8'h00;
+								end
+								else
+								begin
+								Red = 8'hFF;
+								Green = 8'hFF;
+								Blue = 8'hFF;
+								end
+							end
+						endcase
+					end
+				end
+			end
+			if(availible_dir[3])
+			begin
+				if(DrawY >= 450 && DrawY < 450 + 12)
+				begin
+					if(DrawX >= 168 + 36 && DrawX < 168 + 48)
+					begin
+						case(alphabet_sprites[(360 * ((DrawY + 6) % 12)) + (DrawX % 12) + (12*3)])
+							1'b1:
+							begin
+								if(BlinkycurrentDirection == 4'd4)
+								begin
+									Red = 8'hFF;
+									Green = 8'h00;
+									Blue = 8'h00;
+								end
+								else
+								begin
+								Red = 8'hFF;
+								Green = 8'hFF;
+								Blue = 8'hFF;
+								end
+							end
+						endcase
+					end
+				end
 			end
     end 
     

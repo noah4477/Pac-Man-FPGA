@@ -125,7 +125,7 @@ begin
 		else if(pacmanPosX - 24 > 408)
 			pacmanPosX <= 48;
 		
-		if(nextDirection != currentDirection)
+		if(nextDirection != currentDirection)	
 		begin
 			case(nextDirection)
 				3'd1:

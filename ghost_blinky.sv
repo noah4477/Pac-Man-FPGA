@@ -2,15 +2,19 @@ module ghost_blinky(input          Clk,                // 50 MHz clock
                              Reset,              // Active-high reset signal
                              frame_clk,          // The clock indicating a new frame (~60Hz)
                input [9:0]   DrawX, DrawY,       // Current pixel coordinates
+					input [9:0]   pacmanPosX, pacmanPosY,
 					input logic [7:0] keycode,
 					input [3:0] PacmanCurrentDir,
 					output logic is_blinky, output logic [3:0] blinky_sprite, 
-					output logic [9:0] blinkyPosX, blinkyPosY, output logic [3:0] BlinkycurrentDirection);
+					output logic [9:0] blinkyPosX, blinkyPosY, output logic [3:0] BlinkycurrentDirection, availible_dir);
 					
-	logic [3:0] nextDirection;
-	logic [3:0] availible_dir;
+	logic [9:0] targetX, targetY, last_direction_squareX, last_direction_squareY;
+	logic [3:0] nextDirection, nextDirectionCalc, frames_since_last;
+	//logic [3:0] availible_dir;
+	
 	valid_moves moves(.*, .PosX(blinkyPosX), .PosY(blinkyPosY), .is_Ghost(1));
-
+	next_dir nextDir_calc(.targetX(targetX), .targetY(targetY), .ghostPosX(blinkyPosX), .ghostPosY(blinkyPosY), .availible_dir(availible_dir),
+		.currentDirection(BlinkycurrentDirection), .nextDirection(nextDirectionCalc));
 	
 	enum logic [5:0] { Halted, 
 					left_fr1, left_fr2, left_fr3, left_fr4, left_fr5, left_fr6, left_fr7, left_fr8,
@@ -26,17 +30,21 @@ module ghost_blinky(input          Clk,                // 50 MHz clock
 		//blinkyPosX = 10'd228;
 		blinkyPosY = 10'D192 + 10'd36;
 		blinkyPosX = 10'd228; //+ 10'd24;
+		//blinkyPosY = 10'd336;
+		//blinkyPosX = 10'd228;
 		blinky_sprite = 3'd4;
 				reset_completed = 1'b0;
 		reset_next_frame = 1'b0;
 		State = Halted;
 		ghostState = waitforLevelStart;
+		frames_since_last = 4'd0;
+		timer_seconds = 0;
 	end
 
 	
 	
-	logic [4:0] timer;
-	logic [3:0] timer_seconds;
+	logic [6:0] timer;
+	logic [6:0] timer_seconds;
 	
 	
 	always_comb
@@ -51,7 +59,7 @@ module ghost_blinky(input          Clk,                // 50 MHz clock
 	
 	enum logic [1:0] { waitforLevelStart, chase, scatter, frightened } ghostState, ghostNext_state;
 	
-
+logic timer_reset;
 
 always_ff @ (posedge frame_clk)
 begin
@@ -61,14 +69,18 @@ begin
 		timer <= 0;
 		timer_seconds <= 0;
 	end
-	
-	timer <= timer + 1;
-	if(timer % 60 == 0)
+	if(ghostState == scatter || ghostState == chase)
+		timer <= timer + 1;
+	if(timer >= 60)
 	begin
 		timer_seconds <= timer_seconds + 1;
 		timer <= 0;
 	end
-
+	if(timer_reset)
+	begin
+		timer <= 0;
+		timer_seconds <= 0;
+	end
 	ghostState <= ghostNext_state;
 	
 
@@ -78,7 +90,9 @@ end
 always_comb
 begin
 	ghostNext_state = ghostState;
-	
+	targetX = pacmanPosX;
+	targetY = pacmanPosY;
+	timer_reset = 1'b0;
 	
 	ghost_in_box = 1'b0;
 	if(blinkyPosY >= 216 && blinkyPosY <= 240 && ((((blinkyPosX / 12) - 6) == 15) || (((blinkyPosX / 12) - 6) == 14) || (((blinkyPosX / 12) - 6) == 13)))
@@ -95,13 +109,28 @@ begin
 		waitforLevelStart:
 		begin
 			if(PacmanCurrentDir > 0)
+			begin
 				ghostNext_state = scatter;
+			end
 		end
 		
-		chase: if(timer_seconds == 20) ghostNext_state = scatter;
+		chase: 
+		begin
+			if(timer_seconds > 19) 
+			begin
+				//ghostNext_state = scatter;
+				timer_reset = 1'b1;
+			end
+		end
 		
-		scatter: if(timer_seconds == 7) ghostNext_state = chase;
-		
+		scatter:
+		begin
+			if(timer_seconds > 10) 
+			begin
+				ghostNext_state = chase;
+				timer_reset = 1'b1;
+			end
+		end
 		frightened: ;
 	endcase
 	
@@ -118,17 +147,25 @@ begin
 		
 		chase:
 		begin
-			
+			targetX = pacmanPosX;
+			targetY = pacmanPosY;
+			nextDirection = nextDirectionCalc;
 		end
 		
 		scatter:
 		begin
-			if(((blinkyPosX / 12) - 6) == 15)
+			if(((blinkyPosX / 12) - 6) == 15 && ghost_in_box)
 				nextDirection = 1;
-			else if(((blinkyPosX / 12) - 6) == 13)
+			else if(((blinkyPosX / 12) - 6) == 13 && ghost_in_box)
 				nextDirection = 2;
-			else if(((blinkyPosX / 12) - 6) == 11)
+			else if(((blinkyPosX / 12) - 6) == 11 && ghost_in_box)
 				nextDirection = 3;
+			else
+			begin
+				targetX = 10'd372;
+				targetY = 10'd6;
+				nextDirection = nextDirectionCalc;
+			end
 		end
 		
 		frightened:
@@ -178,6 +215,9 @@ begin
 		blinkyPosY <= 10'D192 + 10'd36;
 		blinkyPosX <= 10'd228 + 10'd24;
 		reset_completed <= 1'b1;
+		last_direction_squareX <= 123456;
+		last_direction_squareY <= 123456;
+		frames_since_last <= 0;
 	end
 	
 		State <= Next_state;
@@ -209,44 +249,51 @@ begin
 			blinkyPosX <= 408;
 		else if(blinkyPosX - 24 > 408)
 			blinkyPosX <= 48;
-		
+				
 		if(nextDirection != BlinkycurrentDirection)
 		begin
 			case(nextDirection)
 				3'd1:
 				begin
-					if(availible_dir[0] || ghost_in_box == 1'b1)
+					if((availible_dir[0] && frames_since_last >= 4) || ghost_in_box == 1'b1)
 					begin
 						BlinkycurrentDirection <= nextDirection;
 						State <= left_fr1;
+						frames_since_last <= 0;
 					end
 				end
 				3'd2:
 				begin
-					if(availible_dir[1] || ghost_in_box == 1'b1)
+					if((availible_dir[1] && frames_since_last >= 4 )|| ghost_in_box == 1'b1)
 					begin
 						BlinkycurrentDirection <= nextDirection;
 						State <= up_fr1;
+						frames_since_last <= 0;
 					end
 				end
 				3'd3:
 				begin
-					if(availible_dir[2] || ghost_in_box == 1'b1)
+					if((availible_dir[2] && frames_since_last >= 4)|| ghost_in_box == 1'b1)
 					begin
 						BlinkycurrentDirection <= nextDirection;
 						State <= right_fr1;
+						frames_since_last <= 0;
 					end
 				end
 				3'd4:
 				begin
-					if(availible_dir[3] || ghost_in_box == 1'b1)
+					if((availible_dir[3] && frames_since_last >= 4)|| ghost_in_box == 1'b1)
 					begin
 						BlinkycurrentDirection <= nextDirection;
 						State <= down_fr1;
+						frames_since_last <= 0;
 					end
 				end
 			endcase
 		end
+		if(frames_since_last < 8)
+			frames_since_last <= frames_since_last + 1;
+		
 		case(BlinkycurrentDirection)
 			3'd1: 
 			begin
@@ -271,8 +318,7 @@ begin
 		
 		endcase
 		
-		if(nextDirection > 0)
-			BlinkycurrentDirection <= nextDirection;
+		
 end
 	
 	

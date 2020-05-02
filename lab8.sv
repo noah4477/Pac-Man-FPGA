@@ -69,6 +69,8 @@ module lab8( input               CLOCK_50,
 	 logic [1:0] scoreboard_1up_sprite;
 	 logic [1:0] lives = 2'b10;
 	 logic [9:0] blinkyPosX, blinkyPosY;
+	 logic [3:0] availible_dir;
+	 
 	 
 	 gamemap game_map(.*);
 	 points points_map(.*, .Reset(Reset_h));
