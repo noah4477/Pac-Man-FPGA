@@ -60,25 +60,40 @@ module lab8( input               CLOCK_50,
     
 	 //Extra logic to connect components
 	 logic [9:0] DrawX, DrawY;
-	 logic is_ball, is_map, is_point, is_pellet, is_pacman, is_scoreboard, is_pacman_life, is_blinky;
-	 logic [3:0] pacman_sprite, scoreboard_sprite, blinky_sprite;
-	 logic [9:0] pacmanPosX, pacmanPosY;
+	 logic is_ball, is_map, is_point, is_pellet, is_pacman, is_scoreboard, is_pacman_life, is_blinky, is_pinky;
+	 logic [3:0] pacman_sprite, scoreboard_sprite, blinky_sprite, pinky_sprite;
+	 logic [9:0] pacmanPosX, pacmanPosY, pinkyPosX, pinkyPosY;
 	 logic [3:0] currentDirection, BlinkycurrentDirection;
-	 logic [19:0] score, blinky_score, points_eaten;
+	 logic [19:0] score, blinky_score, pinky_score, points_eaten;
 	 logic is_scoreboard_1up;
 	 logic [1:0] scoreboard_1up_sprite;
 	 logic [1:0] lives;
 	 logic [9:0] blinkyPosX, blinkyPosY;
 	 logic [3:0] availible_dir;
-	 logic ate_pellet, is_dead, pacman_dead, soft_reset, hard_reset, new_map;
-	 logic [3:0] is_frightened;
+	 logic ate_pellet, is_pinky_dead, is_blinky_dead, pacman_dead, soft_reset, hard_reset, new_map;
+	 logic [3:0] blinky_is_frightened, pinky_is_frightened;
 	 
 	 gamemap game_map(.*);
 	 points points_map(.*, .Reset(Reset_h), .frame_clk(VGA_VS));
-	 scoreboard scoreboard_(.*, .score(score + blinky_score));
-	 pacman pacman_controller(.*, .Reset(Reset_h), .frame_clk(VGA_VS));
+	 scoreboard scoreboard_(.*, .score(score + blinky_score + pinky_score));
+	 pacman pacman_controller(.*, .Reset(Reset_h), .frame_clk(VGA_VS), .pacman_dead(pacman_dead | pinky_pacman_dead));
 	 ghost_blinky blinky_controller(.*, .PacmanCurrentDir(currentDirection), .Reset(Reset_h), .frame_clk(VGA_VS), .score(blinky_score));
 	 pacman_lives(.*);
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 ghost_pinky pinky(.*, .PacmanCurrentDir(currentDirection), .Reset(Reset_h), .frame_clk(VGA_VS), .pacman_dead(pinky_pacman_dead), .score(pinky_score));
+	 
+	 
+	 
+	 
+	 
+	 
+	 
 	 
     // Interface between NIOS II and EZ-OTG chip
     hpi_io_intf hpi_io_inst(
@@ -132,7 +147,7 @@ module lab8( input               CLOCK_50,
     // TODO: Fill in the connections for the rest of the modules 
     VGA_controller vga_controller_instance(.*, .Reset(Reset_h));
    
-    color_mapper color_instance(.*);
+    color_mapper color_instance(.*, .pacman_dead(pinky_pacman_dead | pacman_dead));
     
     // Display keycode on hex display
     HexDriver hex_inst_0 (keycode[3:0], HEX0);

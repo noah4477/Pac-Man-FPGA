@@ -7,7 +7,7 @@ module ghost_blinky(input          Clk,                // 50 MHz clock
 					input logic [7:0] keycode,
 					input [3:0] PacmanCurrentDir,
 					input [19:0] points_eaten,
-					output logic is_blinky, is_dead, pacman_dead, output logic [3:0] blinky_sprite, is_frightened,
+					output logic is_blinky, is_blinky_dead, pacman_dead, output logic [3:0] blinky_sprite, blinky_is_frightened,
 					output logic [9:0] blinkyPosX, blinkyPosY, output logic [3:0] BlinkycurrentDirection, availible_dir, output [19:0] score);
 					
 	logic [9:0] targetX, targetY, last_direction_squareX, last_direction_squareY, targetY_rand, targetX_rand;
@@ -29,13 +29,9 @@ module ghost_blinky(input          Clk,                // 50 MHz clock
 	initial
 	begin
 		BlinkycurrentDirection = 3'd2;
-		nextDirection = 3'd0;
-		//blinkyPosY = 10'D192;
-		//blinkyPosX = 10'd228;
-		blinkyPosY = 10'D192 + 10'd36;
-		blinkyPosX = 10'd228 + 10'd24;
-		//blinkyPosY = 10'd336;
-		//blinkyPosX = 10'd228;
+		nextDirection = 3'd2;
+		blinkyPosY = 10'D192;
+		blinkyPosX = 10'd228;
 		blinky_sprite = 3'd4;
 				reset_completed = 1'b0;
 		reset_next_frame = 1'b0;
@@ -205,7 +201,7 @@ begin
 	case(ghostState)
 		waitforLevelStart:
 		begin
-			if(PacmanCurrentDir > 0 && points_eaten > 30)
+			if(PacmanCurrentDir > 0)
 			begin
 				ghostNext_state = scatter;
 			end
@@ -256,10 +252,10 @@ begin
 	
 	nextDirection = 0;
 	forceDown = 0;
-	is_frightened = 0;
+	blinky_is_frightened = 0;
 	random_seed1 = random_seed % 372;
 	random_seed2 = random_seed % 336;
-	is_dead = 1'b0;
+	is_blinky_dead = 1'b0;
 	
 	case(ghostState)
 		waitforLevelStart:
@@ -306,17 +302,17 @@ begin
 		begin
 			if(frightened_timer < 5)
 			begin
-				is_frightened = 4'd1;
+				blinky_is_frightened = 4'd1;
 			end
 			else
 			begin
 				if(frightened_timer_ticks <= 10 || ( frightened_timer_ticks > 20 && frightened_timer_ticks <= 30 ) || (frightened_timer_ticks > 40 && frightened_timer_ticks <= 50))
 				begin
-					is_frightened = 4'd1;
+					blinky_is_frightened = 4'd1;
 				end
 				else
 				begin
-					is_frightened = 4'd2;
+					blinky_is_frightened = 4'd2;
 				end
 			end
 			if(frightened_timer == 0 && frightened_timer_ticks < 4)
@@ -349,7 +345,7 @@ begin
 				targetY = 10'd204;
 				nextDirection = nextDirectionCalc;
 			end
-			is_dead = 1'b1;
+			is_blinky_dead = 1'b1;
 		end
 	endcase
 end
@@ -359,7 +355,7 @@ logic [19:0] random_seed, random_seed1, random_seed2;
 logic reset_next_frame, reset_completed;
 always_ff @ (posedge Clk)
 begin
-	if (Reset)
+	if (Reset || hard_reset)
 	begin
 		reset_next_frame <= 1'b1;
 	end
@@ -506,8 +502,8 @@ begin
 		
 	if (reset_next_frame || soft_reset || hard_reset || new_map)
 	begin	
-		blinkyPosY <= 10'D192 + 10'd36;
-		blinkyPosX <= 10'd228 + 10'd24;
+		blinkyPosY <= 10'D192;
+		blinkyPosX <= 10'd228;
 	end
 end
 	

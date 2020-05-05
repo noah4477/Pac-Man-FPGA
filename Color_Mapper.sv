@@ -17,11 +17,12 @@
 module  color_mapper ( 
                        input        	[9:0] DrawX, DrawY,       // Current pixel coordinates
 							  input 					is_map, is_point, is_pellet, is_scoreboard, is_pacman, is_scoreboard_1up, is_pacman_life,
-							  input					is_blinky, is_dead, pacman_dead,
-							  input 			[3:0] blinky_sprite, BlinkycurrentDirection, is_frightened,
-							  input			[3:0] scoreboard_sprite, pacman_sprite,
+							  input					is_blinky, is_blinky_dead, is_pinky_dead, pacman_dead, is_pinky,
+							  input 			[3:0] blinky_sprite, BlinkycurrentDirection, pinky_is_frightened, blinky_is_frightened,
+							  input			[3:0] scoreboard_sprite, pacman_sprite, pinky_sprite,
 							  input 			[9:0] pacmanPosX, pacmanPosY,
 							  input 			[9:0] blinkyPosX, blinkyPosY,
+							  input 			[9:0] pinkyPosX, pinkyPosY,
 							  input			[1:0] scoreboard_1up_sprite,
 							  input 			[3:0] availible_dir,
 							  output logic [7:0] VGA_R, VGA_G, VGA_B // VGA RGB 								
@@ -42,6 +43,7 @@ module  color_mapper (
 	 logic number_sprites[0:2303];	//192 x 12
 	 logic alphabet_sprites[0:4319];	//260 x 12
 	 logic [3:0] blinky_sprites[0:4607];	//192 X 24
+	 logic [3:0] pinky_sprites[0:4607];
 	 logic [3:0] ghost_pellets[0:2303];
 	 logic [3:0] ghost_dead[0:4607];
 	 logic [3:0] pacman_dead_sprite[0:6335];
@@ -55,6 +57,7 @@ module  color_mapper (
 		$readmemb("assets/numbers.txt", number_sprites);
 		$readmemb("assets/alphabet.txt", alphabet_sprites);
 		$readmemh("assets/blinky.txt", blinky_sprites);
+		$readmemh("assets/pinky.txt", pinky_sprites);
 		$readmemh("assets/ghost_pellet.txt", ghost_pellets);
 		$readmemh("assets/ghost_dead.txt", ghost_dead);
 		$readmemh("assets/pacman_dead.txt", pacman_dead_sprite);
@@ -204,7 +207,7 @@ module  color_mapper (
 				case(is_blinky)
 					1'b1:
 					begin
-						if(is_dead)
+						if(is_blinky_dead)
 						begin
 							case(ghost_dead[192 * (DrawY - blinkyPosY - 6) + (DrawX - blinkyPosX) + (24*blinky_sprite)])
 								//0, b, f
@@ -224,7 +227,7 @@ module  color_mapper (
 						end
 						else
 						begin
-							case(is_frightened)
+							case(blinky_is_frightened)
 								4'd0:
 								begin
 									case(blinky_sprites[192 * (DrawY - blinkyPosY - 6) + (DrawX - blinkyPosX) + (24*blinky_sprite)])
@@ -313,12 +316,124 @@ module  color_mapper (
 				endcase
 			end
 			
-			if((pacmanPosY == DrawY && pacmanPosX == DrawX) || ((pacmanPosY == DrawY - 12) && (pacmanPosX == DrawX)))
+			
+			if(~pacman_dead)
 			begin
-				Red = 8'hFF;
-				Green = 8'hB5;
-				Blue = 8'hB5;
+				case(is_pinky)
+					1'b1:
+					begin
+						if(is_pinky_dead)
+						begin
+							case(ghost_dead[192 * (DrawY - pinkyPosY - 6) + (DrawX - pinkyPosX) + (24*pinky_sprite)])
+								//0, b, f
+								4'd0:	//DEDEDE
+								begin
+									Red = 8'hDE;
+									Green = 8'hDE;
+									Blue = 8'hDE;
+								end
+								4'd11:	//2121FF
+								begin
+									Red = 8'h21;
+									Green = 8'h21;
+									Blue = 8'hFF;
+								end
+							endcase
+						end
+						else
+						begin
+							case(pinky_is_frightened)
+								4'd0:
+								begin
+									case(pinky_sprites[192 * (DrawY - pinkyPosY - 6) + (DrawX - pinkyPosX) + (24*pinky_sprite)])
+										//bocf
+										4'd0:	//DEDEDE
+										begin
+											Red = 8'hDE;
+											Green = 8'hDE;
+											Blue = 8'hDE;
+										end
+										4'd11:	//2121FF
+										begin
+											Red = 8'h21;
+											Green = 8'h21;
+											Blue = 8'hFF;
+										end
+										4'd12: //FFB5FF
+										begin
+											Red = 8'hFF;
+											Green = 8'hB5;
+											Blue = 8'hFF;
+										end
+									endcase
+								end
+								4'd1:
+								begin
+									case(ghost_pellets[96 * (DrawY - pinkyPosY - 6) + (DrawX - pinkyPosX) + (24*(pinky_sprite % 2) + 48)])
+										4'd0:	//DEDEDE
+										begin
+											Red = 8'hDE;
+											Green = 8'hDE;
+											Blue = 8'hDE;
+										end
+										4'd1:	//DE0000
+										begin
+											Red = 8'hDE;
+											Green = 8'h00;
+											Blue = 8'h00;
+										end
+										4'd11:	//2121FF
+										begin
+											Red = 8'h21;
+											Green = 8'h21;
+											Blue = 8'hFF;
+										end
+										4'd12: //FFB5FF
+										begin
+											Red = 8'hFF;
+											Green = 8'hB5;
+											Blue = 8'hFF;
+										end
+									endcase
+								end
+								4'd2:
+								begin
+									case(ghost_pellets[96 * (DrawY - pinkyPosY - 6) + (DrawX - pinkyPosX) + (24*(pinky_sprite % 2))])
+										4'd0:	//DEDEDE
+										begin
+											Red = 8'hDE;
+											Green = 8'hDE;
+											Blue = 8'hDE;
+										end
+										4'd1:	//DE0000
+										begin
+											Red = 8'hDE;
+											Green = 8'h00;
+											Blue = 8'h00;
+										end
+										4'd11:	//2121FF
+										begin
+											Red = 8'h21;
+											Green = 8'h21;
+											Blue = 8'hFF;
+										end
+										4'd12: //FFB5FF
+										begin
+											Red = 8'hFF;
+											Green = 8'hB5;
+											Blue = 8'hFF;
+										end
+									endcase
+								end
+							endcase
+						end
+					end
+				endcase
 			end
+			
+			
+			
+			
 			
 			if(is_scoreboard)
 			begin
