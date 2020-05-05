@@ -33,7 +33,7 @@ module ghost_blinky(input          Clk,                // 50 MHz clock
 		//blinkyPosY = 10'D192;
 		//blinkyPosX = 10'd228;
 		blinkyPosY = 10'D192 + 10'd36;
-		blinkyPosX = 10'd228; //+ 10'd24;
+		blinkyPosX = 10'd228 + 10'd24;
 		//blinkyPosY = 10'd336;
 		//blinkyPosX = 10'd228;
 		blinky_sprite = 3'd4;
@@ -288,11 +288,11 @@ begin
 		
 		scatter:
 		begin
-			if(((blinkyPosX / 12) - 6) == 15 && ghost_in_box)
+			if((((blinkyPosX / 12) - 6) == 15 || ((blinkyPosX / 12) - 6) == 14) && ghost_in_box)
 				nextDirection = 1;
 			else if(((blinkyPosX / 12) - 6) == 13 && ghost_in_box)
 				nextDirection = 2;
-			else if(((blinkyPosX / 12) - 6) == 11 && ghost_in_box)
+			else if((((blinkyPosX / 12) - 6) == 11 || ((blinkyPosX / 12) - 6) == 12) && ghost_in_box)
 				nextDirection = 3;
 			else
 			begin
@@ -507,7 +507,7 @@ begin
 	if (reset_next_frame || soft_reset || hard_reset || new_map)
 	begin	
 		blinkyPosY <= 10'D192 + 10'd36;
-		blinkyPosX <= 10'd228;
+		blinkyPosX <= 10'd228 + 10'd24;
 	end
 end
 	
