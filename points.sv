@@ -1,5 +1,5 @@
-module points(input Reset, input Clk, is_pacman, input [3:0] currentDirection, input [9:0] pacmanPosX, pacmanPosY,
-				  input [9:0] DrawX, DrawY, output is_point, is_pellet, output [19:0] score);
+module points(input Reset, input Clk, frame_clk, is_pacman, hard_reset, input [3:0] currentDirection, input [9:0] pacmanPosX, pacmanPosY,
+				  input [9:0] DrawX, DrawY, output is_point, is_pellet, ate_pellet, output new_map, output [19:0] score, points_eaten);
 
 	 logic[0:30][0:27] points;
 	 logic[0:30][0:27] pellets;
@@ -73,10 +73,11 @@ module points(input Reset, input Clk, is_pacman, input [3:0] currentDirection, i
 		score <= 0;
 	end
 	
-	
+	logic new_map_fk;
 
 	always_comb
 	begin
+		new_map = 0;
 		is_point = 0;
 		is_pellet = 0;
 		if(DrawY >= 72 && DrawY < 444 && DrawX >= 72 && DrawX < 408)
@@ -88,12 +89,19 @@ module points(input Reset, input Clk, is_pacman, input [3:0] currentDirection, i
 				1'b1: is_pellet = 1;
 			endcase
 		end
+		
+		if(points[0] == 0 && points[1] == 0 && points[2] == 0 && points[3] == 0 && points[4] == 0 && points[5] == 0 && points[6] == 0 && points[7] == 0 && points[8] == 0 && points[9] == 0 && 
+		points[10] == 0 && points[11] == 0 && points[12] == 0 && points[13] == 0 && points[14] == 0 && points[15] == 0 && points[16] == 0 && points[17] == 0 && points[18] == 0 && points[19] == 0 && 
+		points[20] == 0 && points[21] == 0 && points[22] == 0 && points[23] == 0 && points[24] == 0 && points[25] == 0 && points[26] == 0 && points[27] == 0 && points[28] == 0 && points[29] == 0 && points[30] == 0)
+		begin
+			new_map = 1'b1;
+		end
 	end
 	
 	
 	always_ff @ (posedge Clk)
 	begin
-		if (Reset)
+		if (Reset || hard_reset || new_map_fk)
 		begin
 			pellets[0] <= 28'h0;
 			pellets[1] <= 28'h0;
@@ -159,7 +167,13 @@ module points(input Reset, input Clk, is_pacman, input [3:0] currentDirection, i
 			points[29] <= 28'h7FFFFFE;
 			points[30] <= 28'h0;
 			
-			score <= 0;
+			if(~new_map)
+			begin
+				score <= 0;
+				points_eaten <= 0;
+			end
+			ate_pellet <= 0;
+			
 		end
 			if(is_point && is_pacman)
 			begin
@@ -167,6 +181,7 @@ module points(input Reset, input Clk, is_pacman, input [3:0] currentDirection, i
 				begin
 					points[(((pacmanPosY + 12)/12) - 6)][(((pacmanPosX + 8)/12) - 6)] <= 0;
 					score <= score + 10;
+					points_eaten <= points_eaten + 1;
 				end
 				
 			end
@@ -177,9 +192,64 @@ module points(input Reset, input Clk, is_pacman, input [3:0] currentDirection, i
 				begin
 					pellets[(((pacmanPosY + 12)/12) - 6)][(((pacmanPosX + 8)/12) - 6)] <= 0;
 					score <= score + 50;
+					ate_pellet <= 1;
 				end
-				
 			end
-		
+			if(pellet_reset)
+			begin
+				ate_pellet <= 0;
+			end
 	end
+	
+	
+	
+logic reset_next_frame, reset_completed, pellet_reset;
+always_ff @ (posedge Clk)
+begin
+	if (Reset || new_map)
+	begin
+		reset_next_frame <= 1'b1;
+	end
+	
+	if(reset_completed)	
+	begin
+		reset_next_frame <= 1'b0;
+	end
+end
+
+
+
+always_ff @ (posedge frame_clk)
+begin
+	if(reset_completed)
+	begin
+		reset_completed <= 1'b0;
+		pellet_reset <= 0;
+	end
+	
+	if (reset_next_frame)
+	begin
+		
+		reset_completed <= 1'b1;
+	end
+	if(ate_pellet)
+	begin
+		pellet_reset <= 1;
+	end
+	else
+	begin
+		pellet_reset <= 0;
+	end
+	
+	if(new_map)
+	begin
+		new_map_fk = 1'b1;
+	end
+	else
+	begin
+		new_map_fk = 1'b0;
+	end
+	
+end
+	
 endmodule

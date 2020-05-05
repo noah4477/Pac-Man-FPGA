@@ -17,8 +17,8 @@
 module  color_mapper ( 
                        input        	[9:0] DrawX, DrawY,       // Current pixel coordinates
 							  input 					is_map, is_point, is_pellet, is_scoreboard, is_pacman, is_scoreboard_1up, is_pacman_life,
-							  input					is_blinky,
-							  input 			[3:0] blinky_sprite, BlinkycurrentDirection,
+							  input					is_blinky, is_dead, pacman_dead,
+							  input 			[3:0] blinky_sprite, BlinkycurrentDirection, is_frightened,
 							  input			[3:0] scoreboard_sprite, pacman_sprite,
 							  input 			[9:0] pacmanPosX, pacmanPosY,
 							  input 			[9:0] blinkyPosX, blinkyPosY,
@@ -42,7 +42,9 @@ module  color_mapper (
 	 logic number_sprites[0:2303];	//192 x 12
 	 logic alphabet_sprites[0:4319];	//260 x 12
 	 logic [3:0] blinky_sprites[0:4607];	//192 X 24
-
+	 logic [3:0] ghost_pellets[0:2303];
+	 logic [3:0] ghost_dead[0:4607];
+	 logic [3:0] pacman_dead_sprite[0:6335];
 	 
 	 initial
 	 begin
@@ -53,6 +55,9 @@ module  color_mapper (
 		$readmemb("assets/numbers.txt", number_sprites);
 		$readmemb("assets/alphabet.txt", alphabet_sprites);
 		$readmemh("assets/blinky.txt", blinky_sprites);
+		$readmemh("assets/ghost_pellet.txt", ghost_pellets);
+		$readmemh("assets/ghost_dead.txt", ghost_dead);
+		$readmemh("assets/pacman_dead.txt", pacman_dead_sprite);
 	 end
 	 
 	 
@@ -154,63 +159,159 @@ module  color_mapper (
 				end
 				1'b1:
 				begin
-					case(pacman_sprites[(216 * (DrawY - pacmanPosY - 6)) + (DrawX - pacmanPosX) + (24*pacman_sprite)])
-						4'd6:	//949400
-						begin
-							Red = 8'h94;
-							Green = 8'h94;
-							Blue = 8'h00;
-						end
-						4'd7:	//FFFF21
-						begin
-							Red = 8'hFF;
-							Green = 8'hFF;
-							Blue = 8'h21;
-						end
-						default:
-						begin
-							Red = Red;
-							Green = Green;
-							Blue = Blue;
-						end
-					endcase
+					if(pacman_dead)
+					begin
+						case(pacman_dead_sprite[(264 * (DrawY - pacmanPosY - 6)) + (DrawX - pacmanPosX) + (24*pacman_sprite)])
+							4'd7:	//FFFF21
+							begin
+								Red = 8'hFF;
+								Green = 8'hFF;
+								Blue = 8'h21;
+							end
+						endcase
+					end
+					else
+					begin
+						case(pacman_sprites[(216 * (DrawY - pacmanPosY - 6)) + (DrawX - pacmanPosX) + (24*pacman_sprite)])
+							4'd6:	//949400
+							begin
+								Red = 8'h94;
+								Green = 8'h94;
+								Blue = 8'h00;
+							end
+							4'd7:	//FFFF21
+							begin
+								Red = 8'hFF;
+								Green = 8'hFF;
+								Blue = 8'h21;
+							end
+							default:
+							begin
+								Red = Red;
+								Green = Green;
+								Blue = Blue;
+							end
+						endcase
+					end
+					
 				end
 			
 			endcase
 			
-			case(is_blinky)
-				1'b1:
-				begin
-					case(blinky_sprites[192 * (DrawY - blinkyPosY - 6) + (DrawX - blinkyPosX) + (24*blinky_sprite)])
-						//0, 1, b, f
-						4'd0:	//DEDEDE
+			if(~pacman_dead)
+			begin
+				
+				case(is_blinky)
+					1'b1:
+					begin
+						if(is_dead)
 						begin
-							Red = 8'hDE;
-							Green = 8'hDE;
-							Blue = 8'hDE;
+							case(ghost_dead[192 * (DrawY - blinkyPosY - 6) + (DrawX - blinkyPosX) + (24*blinky_sprite)])
+								//0, b, f
+								4'd0:	//DEDEDE
+								begin
+									Red = 8'hDE;
+									Green = 8'hDE;
+									Blue = 8'hDE;
+								end
+								4'd11:	//2121FF
+								begin
+									Red = 8'h21;
+									Green = 8'h21;
+									Blue = 8'hFF;
+								end
+							endcase
 						end
-						4'd1:	//DE0000
+						else
 						begin
-							Red = 8'hDE;
-							Green = 8'h00;
-							Blue = 8'h00;
+							case(is_frightened)
+								4'd0:
+								begin
+									case(blinky_sprites[192 * (DrawY - blinkyPosY - 6) + (DrawX - blinkyPosX) + (24*blinky_sprite)])
+										//0, 1, b, f
+										4'd0:	//DEDEDE
+										begin
+											Red = 8'hDE;
+											Green = 8'hDE;
+											Blue = 8'hDE;
+										end
+										4'd1:	//DE0000
+										begin
+											Red = 8'hDE;
+											Green = 8'h00;
+											Blue = 8'h00;
+										end
+										4'd11:	//2121FF
+										begin
+											Red = 8'h21;
+											Green = 8'h21;
+											Blue = 8'hFF;
+										end
+									endcase
+								end
+								4'd1:
+								begin
+									case(ghost_pellets[96 * (DrawY - blinkyPosY - 6) + (DrawX - blinkyPosX) + (24*(blinky_sprite % 2) + 48)])
+										4'd0:	//DEDEDE
+										begin
+											Red = 8'hDE;
+											Green = 8'hDE;
+											Blue = 8'hDE;
+										end
+										4'd1:	//DE0000
+										begin
+											Red = 8'hDE;
+											Green = 8'h00;
+											Blue = 8'h00;
+										end
+										4'd11:	//2121FF
+										begin
+											Red = 8'h21;
+											Green = 8'h21;
+											Blue = 8'hFF;
+										end
+										4'd12: //FFB5FF
+										begin
+											Red = 8'hFF;
+											Green = 8'hB5;
+											Blue = 8'hFF;
+										end
+									endcase
+								end
+								4'd2:
+								begin
+									case(ghost_pellets[96 * (DrawY - blinkyPosY - 6) + (DrawX - blinkyPosX) + (24*(blinky_sprite % 2))])
+										4'd0:	//DEDEDE
+										begin
+											Red = 8'hDE;
+											Green = 8'hDE;
+											Blue = 8'hDE;
+										end
+										4'd1:	//DE0000
+										begin
+											Red = 8'hDE;
+											Green = 8'h00;
+											Blue = 8'h00;
+										end
+										4'd11:	//2121FF
+										begin
+											Red = 8'h21;
+											Green = 8'h21;
+											Blue = 8'hFF;
+										end
+										4'd12: //FFB5FF
+										begin
+											Red = 8'hFF;
+											Green = 8'hB5;
+											Blue = 8'hFF;
+										end
+									endcase
+								end
+							endcase
 						end
-						4'd11:	//2121FF
-						begin
-							Red = 8'h21;
-							Green = 8'h21;
-							Blue = 8'hFF;
-						end
-					endcase
-				end
-				default:
-				begin
-					Red = Red;
-					Green = Green;
-					Blue = Blue;
-				end
-			endcase
-			
+					end
+				endcase
+			end
 			
 			if((pacmanPosY == DrawY && pacmanPosX == DrawX) || ((pacmanPosY == DrawY - 12) && (pacmanPosX == DrawX)))
 			begin

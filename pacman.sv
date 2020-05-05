@@ -2,7 +2,8 @@ module pacman(input          Clk,                // 50 MHz clock
                              Reset,              // Active-high reset signal
                              frame_clk,          // The clock indicating a new frame (~60Hz)
                input [9:0]   DrawX, DrawY,       // Current pixel coordinates
-					input logic [7:0] keycode,	output logic is_pacman, output logic [3:0] pacman_sprite, output logic [9:0] pacmanPosX, pacmanPosY, output logic [3:0] currentDirection);
+					input pacman_dead, new_map,
+					input logic [7:0] keycode,	output logic is_pacman, output logic [3:0] pacman_sprite, output logic [9:0] pacmanPosX, pacmanPosY, output logic [3:0] currentDirection, output [1:0] lives, output soft_reset, hard_reset);
 
 logic [3:0] nextDirection, nextDirection_;	// 0 (no move), 1 (left), 2(up), 3(right), 4(down)
 
@@ -10,11 +11,12 @@ enum logic [5:0] { Halted,
 						left_fr1, left_fr2, left_fr3, left_fr4, left_fr5, left_fr6, left_fr7, left_fr8, left_fr9,
 						right_fr1, right_fr2, right_fr3, right_fr4, right_fr5, right_fr6, right_fr7, right_fr8, right_fr9,
 						up_fr1, up_fr2, up_fr3, up_fr4, up_fr5, up_fr6, up_fr7, up_fr8, up_fr9,
-						down_fr1, down_fr2, down_fr3, down_fr4, down_fr5, down_fr6, down_fr7, down_fr8, down_fr9} State, Next_state;
+						down_fr1, down_fr2, down_fr3, down_fr4, down_fr5, down_fr6, down_fr7, down_fr8, down_fr9, dead} State, Next_state;
 	
 	logic correct_state;
-	
 	logic [3:0] availible_dir;
+	logic [7:0] dead_timer, dead_round;
+
 	valid_moves moves(.*, .PosX(pacmanPosX), .PosY(pacmanPosY), .is_Ghost(0));
 	
 	initial
@@ -25,7 +27,8 @@ enum logic [5:0] { Halted,
 		pacmanPosY = 10'd336;
 		pacmanPosX = 10'd228;
 		reset_completed = 1'b0;
-		reset_next_frame = 1'b0;		
+		reset_next_frame = 1'b0;	
+		lives = 2'b10;
 	end	
 		
 
@@ -40,24 +43,27 @@ begin
 		is_pacman = 1'b1;
 
 	nextDirection_ = 0;
-	case(keycode)
-		8'h04:	//A LEFT
-			begin
-				nextDirection_ = 3'd1;
-			end
-		8'h07:	//D RIGHT
-			begin
-				nextDirection_ = 3'd3;
-			end
-		8'h1A:	//W UP
-			begin
-				nextDirection_ = 3'd2;
-			end
-		8'h16:	//D Down
-			begin
-				nextDirection_ = 3'd4;
-			end
-	endcase
+	if(State != dead)
+		begin
+		case(keycode)
+			8'h04:	//A LEFT
+				begin
+					nextDirection_ = 3'd1;
+				end
+			8'h07:	//D RIGHT
+				begin
+					nextDirection_ = 3'd3;
+				end
+			8'h1A:	//W UP
+				begin
+					nextDirection_ = 3'd2;
+				end
+			8'h16:	//D Down
+				begin
+					nextDirection_ = 3'd4;
+				end
+		endcase
+	end
 end
 
 
@@ -85,7 +91,7 @@ begin
 		reset_completed <= 1'b0;
 	end
 	
-	if (reset_next_frame)
+	if (reset_next_frame || hard_reset)
 	begin
 		State <= Halted;
 		currentDirection <= 3'd0;
@@ -93,101 +99,151 @@ begin
 		pacmanPosY <= 10'd336;
 		pacmanPosX <= 10'd228;
 		reset_completed <= 1'b1;
+		lives <= 2'b10;
+		dead_timer <= 0;
+		dead_round <= 0;
+		soft_reset <= 0;
+		hard_reset <= 0;
 	end
 	
 		State <= Next_state;
-				
-		case(currentDirection)
-			3'd1: 
-			begin
-				if(availible_dir[0])
-					pacmanPosX <= pacmanPosX - 1;
-			end
-			3'd2:
-			begin
-				if(availible_dir[1])
-					pacmanPosY <= pacmanPosY - 1;
-			end
-			3'd3:
-			begin
-				if(availible_dir[2])
-					pacmanPosX <= pacmanPosX + 1;
-			end
-			3'd4:
-			begin
-				if(availible_dir[3])
-					pacmanPosY <= pacmanPosY + 1;
-			end			
-		endcase
-		
-		if(pacmanPosX + 24 < 72)
-			pacmanPosX <= 408;
-		else if(pacmanPosX - 24 > 408)
-			pacmanPosX <= 48;
-		
-		if(nextDirection != currentDirection)	
+		if(State != dead)
 		begin
-			case(nextDirection)
-				3'd1:
+			case(currentDirection)
+				3'd1: 
 				begin
 					if(availible_dir[0])
-					begin
-						currentDirection <= nextDirection;
-						State <= left_fr3;
-					end
+						pacmanPosX <= pacmanPosX - 1;
 				end
 				3'd2:
 				begin
 					if(availible_dir[1])
-					begin
-						currentDirection <= nextDirection;
-						State <= up_fr3;
-					end
+						pacmanPosY <= pacmanPosY - 1;
 				end
 				3'd3:
 				begin
 					if(availible_dir[2])
-					begin
-						currentDirection <= nextDirection;
-						State <= right_fr3;
-					end
+						pacmanPosX <= pacmanPosX + 1;
 				end
 				3'd4:
 				begin
 					if(availible_dir[3])
-					begin
-						currentDirection <= nextDirection;
-						State <= down_fr3;
-					end
-				end
+						pacmanPosY <= pacmanPosY + 1;
+				end			
 			endcase
 		end
-		case(currentDirection)
-			3'd1: 
+		if(pacmanPosX + 24 < 72)
+			pacmanPosX <= 408;
+		else if(pacmanPosX - 24 > 408)
+			pacmanPosX <= 48;
+			
+		if(State != dead)
+		begin
+			if(nextDirection != currentDirection)	
 			begin
-				if(~availible_dir[0] || ~correct_state)
-					State <= left_fr3;
+				case(nextDirection)
+					3'd1:
+					begin
+						if(availible_dir[0])
+						begin
+							currentDirection <= nextDirection;
+							State <= left_fr3;
+						end
+					end
+					3'd2:
+					begin
+						if(availible_dir[1])
+						begin
+							currentDirection <= nextDirection;
+							State <= up_fr3;
+						end
+					end
+					3'd3:
+					begin
+						if(availible_dir[2])
+						begin
+							currentDirection <= nextDirection;
+							State <= right_fr3;
+						end
+					end
+					3'd4:
+					begin
+						if(availible_dir[3])
+						begin
+							currentDirection <= nextDirection;
+							State <= down_fr3;
+						end
+					end
+				endcase
 			end
-			3'd2:
-			begin
-				if(~availible_dir[1] || ~correct_state)
-					State <= up_fr3;
-			end
-			3'd3:
-			begin
-				if(~availible_dir[2] || ~correct_state)
-					State <= right_fr3;
-			end
-			3'd4:
-			begin
-				if(~availible_dir[3] || ~correct_state)
-					State <= down_fr3;
-			end
-		
-		endcase
-		
+			case(currentDirection)
+				3'd1: 
+				begin
+					if(~availible_dir[0] || ~correct_state)
+						State <= left_fr3;
+				end
+				3'd2:
+				begin
+					if(~availible_dir[1] || ~correct_state)
+						State <= up_fr3;
+				end
+				3'd3:
+				begin
+					if(~availible_dir[2] || ~correct_state)
+						State <= right_fr3;
+				end
+				3'd4:
+				begin
+					if(~availible_dir[3] || ~correct_state)
+						State <= down_fr3;
+				end
+			
+			endcase
+		end
 		if(nextDirection_ > 0)
 			nextDirection <= nextDirection_;
+			
+		if(State == dead)
+		begin
+			if(dead_round == 0 && dead_timer >= 75)
+			begin
+				dead_timer <= 0;
+				dead_round <= dead_round + 1;
+			end
+			else if(dead_timer >= 21 && dead_round < 10 && dead_round > 0)
+			begin
+				dead_timer <= 0;
+				dead_round <= dead_round + 1;
+			end
+			else if(dead_round == 10 && dead_timer >= 75)
+			begin
+				if(~soft_reset && lives > 0)
+				begin
+					lives <= lives - 1;
+				end
+				if(~soft_reset && lives == 0)
+				begin
+					hard_reset <= 1;
+				end
+				else
+				begin
+					soft_reset <= 1;
+				end
+			end
+			
+			dead_timer <= dead_timer + 1;
+		end
+		if(soft_reset || new_map)
+		begin
+			State <= Halted;
+			currentDirection <= 3'd0;
+			nextDirection <= 3'd0;
+			pacmanPosY <= 10'd336;
+			pacmanPosX <= 10'd228;
+			soft_reset <= 0;
+			dead_timer <= 0;
+			dead_round <= 0;
+		end
 end
 	
 	
@@ -253,6 +309,10 @@ begin
 		up_fr9: Next_state = up_fr1;
 	endcase
 	
+	if(pacman_dead)
+		Next_state = dead;
+	
+	
 	case (State)
 		Halted: pacman_sprite = 4'd8;
 		
@@ -296,6 +356,11 @@ begin
 		down_fr7: pacman_sprite = 4'd5;
 		down_fr8: pacman_sprite = 4'd7;
 		down_fr9: pacman_sprite = 4'd7;
+		
+		dead:
+		begin
+			pacman_sprite = dead_round;
+		end
 		
 	endcase
 	

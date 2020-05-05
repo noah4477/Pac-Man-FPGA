@@ -64,19 +64,20 @@ module lab8( input               CLOCK_50,
 	 logic [3:0] pacman_sprite, scoreboard_sprite, blinky_sprite;
 	 logic [9:0] pacmanPosX, pacmanPosY;
 	 logic [3:0] currentDirection, BlinkycurrentDirection;
-	 logic [19:0] score;
+	 logic [19:0] score, blinky_score, points_eaten;
 	 logic is_scoreboard_1up;
 	 logic [1:0] scoreboard_1up_sprite;
-	 logic [1:0] lives = 2'b10;
+	 logic [1:0] lives;
 	 logic [9:0] blinkyPosX, blinkyPosY;
 	 logic [3:0] availible_dir;
-	 
+	 logic ate_pellet, is_dead, pacman_dead, soft_reset, hard_reset, new_map;
+	 logic [3:0] is_frightened;
 	 
 	 gamemap game_map(.*);
-	 points points_map(.*, .Reset(Reset_h));
-	 scoreboard scoreboard_(.*);
+	 points points_map(.*, .Reset(Reset_h), .frame_clk(VGA_VS));
+	 scoreboard scoreboard_(.*, .score(score + blinky_score));
 	 pacman pacman_controller(.*, .Reset(Reset_h), .frame_clk(VGA_VS));
-	 ghost_blinky blinky_controller(.*, .PacmanCurrentDir(currentDirection), .Reset(Reset_h), .frame_clk(VGA_VS));
+	 ghost_blinky blinky_controller(.*, .PacmanCurrentDir(currentDirection), .Reset(Reset_h), .frame_clk(VGA_VS), .score(blinky_score));
 	 pacman_lives(.*);
 	 
     // Interface between NIOS II and EZ-OTG chip
