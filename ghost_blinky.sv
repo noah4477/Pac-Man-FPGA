@@ -209,7 +209,7 @@ begin
 		
 		chase: 
 		begin
-			if(ate_pellet && ghostState != waitforLevelStart)
+			if(ate_pellet && ghostState != waitforLevelStart && ghostState != dead && ~ghost_in_box)
 			begin
 				ghostNext_state = frightened;
 			end
@@ -223,7 +223,7 @@ begin
 		
 		scatter:
 		begin
-			if(ate_pellet)
+			if(ate_pellet && ghostState != dead && ~ghost_in_box)
 			begin
 				ghostNext_state = frightened;
 			end
@@ -315,7 +315,7 @@ begin
 					blinky_is_frightened = 4'd2;
 				end
 			end
-			if(frightened_timer == 0 && frightened_timer_ticks < 4)
+			if(frightened_timer == 0 && frightened_timer_ticks < 4  && ~ghost_in_box)
 			begin
 				case(BlinkycurrentDirection)
 					4'd1: nextDirection = 3;

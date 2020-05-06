@@ -17,12 +17,14 @@
 module  color_mapper ( 
                        input        	[9:0] DrawX, DrawY,       // Current pixel coordinates
 							  input 					is_map, is_point, is_pellet, is_scoreboard, is_pacman, is_scoreboard_1up, is_pacman_life,
-							  input					is_blinky, is_blinky_dead, is_pinky_dead, pacman_dead, is_pinky,
-							  input 			[3:0] blinky_sprite, BlinkycurrentDirection, pinky_is_frightened, blinky_is_frightened,
+							  input					is_blinky, is_blinky_dead, is_pinky_dead, pacman_dead, is_pinky, is_inky_dead, is_inky, is_clyde, is_clyde_dead,
+							  input 			[3:0] blinky_sprite, BlinkycurrentDirection, pinky_is_frightened, blinky_is_frightened, inky_is_frightened, inky_sprite, clyde_is_frightened, clyde_sprite, 
 							  input			[3:0] scoreboard_sprite, pacman_sprite, pinky_sprite,
 							  input 			[9:0] pacmanPosX, pacmanPosY,
 							  input 			[9:0] blinkyPosX, blinkyPosY,
 							  input 			[9:0] pinkyPosX, pinkyPosY,
+							  input 			[9:0] inkyPosX, inkyPosY,
+							  input 			[9:0] clydePosX, clydePosY,
 							  input			[1:0] scoreboard_1up_sprite,
 							  input 			[3:0] availible_dir,
 							  output logic [7:0] VGA_R, VGA_G, VGA_B // VGA RGB 								
@@ -43,6 +45,8 @@ module  color_mapper (
 	 logic number_sprites[0:2303];	//192 x 12
 	 logic alphabet_sprites[0:4319];	//260 x 12
 	 logic [3:0] blinky_sprites[0:4607];	//192 X 24
+	 logic [3:0] inky_sprites[0:4607];	//192 X 24
+	 logic [3:0] clyde_sprites[0:4607];	//192 X 24
 	 logic [3:0] pinky_sprites[0:4607];
 	 logic [3:0] ghost_pellets[0:2303];
 	 logic [3:0] ghost_dead[0:4607];
@@ -58,6 +62,8 @@ module  color_mapper (
 		$readmemb("assets/alphabet.txt", alphabet_sprites);
 		$readmemh("assets/blinky.txt", blinky_sprites);
 		$readmemh("assets/pinky.txt", pinky_sprites);
+		$readmemh("assets/inky.txt", inky_sprites);
+		$readmemh("assets/clyde.txt", clyde_sprites);
 		$readmemh("assets/ghost_pellet.txt", ghost_pellets);
 		$readmemh("assets/ghost_dead.txt", ghost_dead);
 		$readmemh("assets/pacman_dead.txt", pacman_dead_sprite);
@@ -433,6 +439,236 @@ module  color_mapper (
 			
 			
 			
+			if(~pacman_dead)
+			begin
+				case(is_inky)
+					1'b1:
+					begin
+						if(is_inky_dead)
+						begin
+							case(ghost_dead[192 * (DrawY - inkyPosY - 6) + (DrawX - inkyPosX) + (24*inky_sprite)])
+								//0, b, f
+								4'd0:	//DEDEDE
+								begin
+									Red = 8'hDE;
+									Green = 8'hDE;
+									Blue = 8'hDE;
+								end
+								4'd11:	//2121FF
+								begin
+									Red = 8'h21;
+									Green = 8'h21;
+									Blue = 8'hFF;
+								end
+							endcase
+						end
+						else
+						begin
+							case(inky_is_frightened)
+								4'd0:
+								begin
+									case(inky_sprites[192 * (DrawY - inkyPosY - 6) + (DrawX - inkyPosX) + (24*inky_sprite)])
+										//bocf
+										4'd0:	//DEDEDE
+										begin
+											Red = 8'hDE;
+											Green = 8'hDE;
+											Blue = 8'hDE;
+										end
+										4'd11:	//2121FF
+										begin
+											Red = 8'h21;
+											Green = 8'h21;
+											Blue = 8'hFF;
+										end
+											4'd9:	//00DEDE
+										begin
+											Red = 8'h00;
+											Green = 8'hDE;
+											Blue = 8'hDE;
+										end
+									endcase
+								end
+								4'd1:
+								begin
+									case(ghost_pellets[96 * (DrawY - inkyPosY - 6) + (DrawX - inkyPosX) + (24*(inky_sprite % 2) + 48)])
+										4'd0:	//DEDEDE
+										begin
+											Red = 8'hDE;
+											Green = 8'hDE;
+											Blue = 8'hDE;
+										end
+										4'd1:	//DE0000
+										begin
+											Red = 8'hDE;
+											Green = 8'h00;
+											Blue = 8'h00;
+										end
+										4'd11:	//2121FF
+										begin
+											Red = 8'h21;
+											Green = 8'h21;
+											Blue = 8'hFF;
+										end
+										4'd12: //FFB5FF
+										begin
+											Red = 8'hFF;
+											Green = 8'hB5;
+											Blue = 8'hFF;
+										end
+									endcase
+								end
+								4'd2:
+								begin
+									case(ghost_pellets[96 * (DrawY - inkyPosY - 6) + (DrawX - inkyPosX) + (24*(inky_sprite % 2))])
+										4'd0:	//DEDEDE
+										begin
+											Red = 8'hDE;
+											Green = 8'hDE;
+											Blue = 8'hDE;
+										end
+										4'd1:	//DE0000
+										begin
+											Red = 8'hDE;
+											Green = 8'h00;
+											Blue = 8'h00;
+										end
+										4'd11:	//2121FF
+										begin
+											Red = 8'h21;
+											Green = 8'h21;
+											Blue = 8'hFF;
+										end
+										4'd12: //FFB5FF
+										begin
+											Red = 8'hFF;
+											Green = 8'hB5;
+											Blue = 8'hFF;
+										end
+									endcase
+								end
+							endcase
+						end
+					end
+				endcase
+			end
+			
+			
+			
+			if(~pacman_dead)
+			begin
+				case(is_clyde)
+					1'b1:
+					begin
+						if(is_clyde_dead)
+						begin
+							case(ghost_dead[192 * (DrawY - clydePosY - 6) + (DrawX - clydePosX) + (24*clyde_sprite)])
+								//0, b, f
+								4'd0:	//DEDEDE
+								begin
+									Red = 8'hDE;
+									Green = 8'hDE;
+									Blue = 8'hDE;
+								end
+								4'd11:	//2121FF
+								begin
+									Red = 8'h21;
+									Green = 8'h21;
+									Blue = 8'hFF;
+								end
+							endcase
+						end
+						else
+						begin
+							case(clyde_is_frightened)
+								4'd0:
+								begin
+									case(clyde_sprites[192 * (DrawY - clydePosY - 6) + (DrawX - clydePosX) + (24*clyde_sprite)])
+										//bocf
+										4'd0:	//DEDEDE
+										begin
+											Red = 8'hDE;
+											Green = 8'hDE;
+											Blue = 8'hDE;
+										end
+										4'd11:	//2121FF
+										begin
+											Red = 8'h21;
+											Green = 8'h21;
+											Blue = 8'hFF;
+										end
+										4'd4:	//FFB521
+										begin
+											Red = 8'hFF;
+											Green = 8'hB5;
+											Blue = 8'h21;
+										end
+									endcase
+								end
+								4'd1:
+								begin
+									case(ghost_pellets[96 * (DrawY - clydePosY - 6) + (DrawX - clydePosX) + (24*(clyde_sprite % 2) + 48)])
+										4'd0:	//DEDEDE
+										begin
+											Red = 8'hDE;
+											Green = 8'hDE;
+											Blue = 8'hDE;
+										end
+										4'd1:	//DE0000
+										begin
+											Red = 8'hDE;
+											Green = 8'h00;
+											Blue = 8'h00;
+										end
+										4'd11:	//2121FF
+										begin
+											Red = 8'h21;
+											Green = 8'h21;
+											Blue = 8'hFF;
+										end
+										4'd12: //FFB5FF
+										begin
+											Red = 8'hFF;
+											Green = 8'hB5;
+											Blue = 8'hFF;
+										end
+									endcase
+								end
+								4'd2:
+								begin
+									case(ghost_pellets[96 * (DrawY - clydePosY - 6) + (DrawX - clydePosX) + (24*(clyde_sprite % 2))])
+										4'd0:	//DEDEDE
+										begin
+											Red = 8'hDE;
+											Green = 8'hDE;
+											Blue = 8'hDE;
+										end
+										4'd1:	//DE0000
+										begin
+											Red = 8'hDE;
+											Green = 8'h00;
+											Blue = 8'h00;
+										end
+										4'd11:	//2121FF
+										begin
+											Red = 8'h21;
+											Green = 8'h21;
+											Blue = 8'hFF;
+										end
+										4'd12: //FFB5FF
+										begin
+											Red = 8'hFF;
+											Green = 8'hB5;
+											Blue = 8'hFF;
+										end
+									endcase
+								end
+							endcase
+						end
+					end
+				endcase
+			end
+			
 			
 			
 			if(is_scoreboard)
@@ -514,110 +750,113 @@ module  color_mapper (
 					end
 				endcase
 			end
-			if(availible_dir[0])	// LEFT UP RIGHT DOWN
+			if(1'b0)	//ENABLE/DISABLE DIRECTION DEBUGGING
 			begin
-				if(DrawY >= 450 && DrawY < 450 + 12)
+				if(availible_dir[0])	// LEFT UP RIGHT DOWN
 				begin
-					if(DrawX >= 168 && DrawX < 168 + 12)
+					if(DrawY >= 450 && DrawY < 450 + 12)
 					begin
-						case(alphabet_sprites[(360 * ((DrawY + 6) % 12)) + (DrawX % 12) + (12*11)])
-							1'b1:
-							begin
-								if(BlinkycurrentDirection == 4'd1)
+						if(DrawX >= 168 && DrawX < 168 + 12)
+						begin
+							case(alphabet_sprites[(360 * ((DrawY + 6) % 12)) + (DrawX % 12) + (12*11)])
+								1'b1:
 								begin
+									if(BlinkycurrentDirection == 4'd1)
+									begin
+										Red = 8'hFF;
+										Green = 8'h00;
+										Blue = 8'h00;
+									end
+									else
+									begin
 									Red = 8'hFF;
-									Green = 8'h00;
-									Blue = 8'h00;
+									Green = 8'hFF;
+									Blue = 8'hFF;
+									end
 								end
-								else
-								begin
-								Red = 8'hFF;
-								Green = 8'hFF;
-								Blue = 8'hFF;
-								end
-							end
-						endcase
+							endcase
+						end
 					end
 				end
-			end
-			if(availible_dir[1])	//up
-			begin
-				if(DrawY >= 450 && DrawY < 450 + 12)
+				if(availible_dir[1])	//up
 				begin
-					if(DrawX >= 168 + 12 && DrawX < 168 + 24)
+					if(DrawY >= 450 && DrawY < 450 + 12)
 					begin
-						case(alphabet_sprites[(360 * ((DrawY + 6) % 12)) + (DrawX % 12) + (12*20)])
-							1'b1:
-							begin
-								if(BlinkycurrentDirection == 4'd2)
+						if(DrawX >= 168 + 12 && DrawX < 168 + 24)
+						begin
+							case(alphabet_sprites[(360 * ((DrawY + 6) % 12)) + (DrawX % 12) + (12*20)])
+								1'b1:
 								begin
+									if(BlinkycurrentDirection == 4'd2)
+									begin
+										Red = 8'hFF;
+										Green = 8'h00;
+										Blue = 8'h00;
+									end
+									else
+									begin
 									Red = 8'hFF;
-									Green = 8'h00;
-									Blue = 8'h00;
+									Green = 8'hFF;
+									Blue = 8'hFF;
+									end
 								end
-								else
-								begin
-								Red = 8'hFF;
-								Green = 8'hFF;
-								Blue = 8'hFF;
-								end
-							end
-						endcase
+							endcase
+						end
 					end
 				end
-			end
-			if(availible_dir[2])
-			begin
-				if(DrawY >= 450 && DrawY < 450 + 12)
+				if(availible_dir[2])
 				begin
-					if(DrawX >= 168 + 24 && DrawX < 168 + 36)
+					if(DrawY >= 450 && DrawY < 450 + 12)
 					begin
-						case(alphabet_sprites[(360 * ((DrawY + 6) % 12)) + (DrawX % 12) + (12*17)])
-							1'b1:
-							begin
-								if(BlinkycurrentDirection == 4'd3)
+						if(DrawX >= 168 + 24 && DrawX < 168 + 36)
+						begin
+							case(alphabet_sprites[(360 * ((DrawY + 6) % 12)) + (DrawX % 12) + (12*17)])
+								1'b1:
 								begin
+									if(BlinkycurrentDirection == 4'd3)
+									begin
+										Red = 8'hFF;
+										Green = 8'h00;
+										Blue = 8'h00;
+									end
+									else
+									begin
 									Red = 8'hFF;
-									Green = 8'h00;
-									Blue = 8'h00;
+									Green = 8'hFF;
+									Blue = 8'hFF;
+									end
 								end
-								else
-								begin
-								Red = 8'hFF;
-								Green = 8'hFF;
-								Blue = 8'hFF;
-								end
-							end
-						endcase
+							endcase
+						end
 					end
 				end
-			end
-			if(availible_dir[3])
-			begin
-				if(DrawY >= 450 && DrawY < 450 + 12)
+				if(availible_dir[3])
 				begin
-					if(DrawX >= 168 + 36 && DrawX < 168 + 48)
+					if(DrawY >= 450 && DrawY < 450 + 12)
 					begin
-						case(alphabet_sprites[(360 * ((DrawY + 6) % 12)) + (DrawX % 12) + (12*3)])
-							1'b1:
-							begin
-								if(BlinkycurrentDirection == 4'd4)
+						if(DrawX >= 168 + 36 && DrawX < 168 + 48)
+						begin
+							case(alphabet_sprites[(360 * ((DrawY + 6) % 12)) + (DrawX % 12) + (12*3)])
+								1'b1:
 								begin
+									if(BlinkycurrentDirection == 4'd4)
+									begin
+										Red = 8'hFF;
+										Green = 8'h00;
+										Blue = 8'h00;
+									end
+									else
+									begin
 									Red = 8'hFF;
-									Green = 8'h00;
-									Blue = 8'h00;
+									Green = 8'hFF;
+									Blue = 8'hFF;
+									end
 								end
-								else
-								begin
-								Red = 8'hFF;
-								Green = 8'hFF;
-								Blue = 8'hFF;
-								end
-							end
-						endcase
+							endcase
+						end
 					end
 				end
-			end
+		end
     end 
     
 endmodule

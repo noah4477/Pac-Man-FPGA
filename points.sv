@@ -167,7 +167,7 @@ module points(input Reset, input Clk, frame_clk, is_pacman, hard_reset, input [3
 			points[29] <= 28'h7FFFFFE;
 			points[30] <= 28'h0;
 			
-			if(~new_map)
+			if(~new_map_fk)
 			begin
 				score <= 0;
 				points_eaten <= 0;

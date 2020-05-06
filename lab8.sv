@@ -75,20 +75,26 @@ module lab8( input               CLOCK_50,
 	 
 	 gamemap game_map(.*);
 	 points points_map(.*, .Reset(Reset_h), .frame_clk(VGA_VS));
-	 scoreboard scoreboard_(.*, .score(score + blinky_score + pinky_score));
-	 pacman pacman_controller(.*, .Reset(Reset_h), .frame_clk(VGA_VS), .pacman_dead(pacman_dead | pinky_pacman_dead));
+	 scoreboard scoreboard_(.*, .score(score + blinky_score + pinky_score + inky_score + clyde_score));
+	 pacman pacman_controller(.*, .Reset(Reset_h), .frame_clk(VGA_VS), .pacman_dead(pacman_dead | pinky_pacman_dead | pinky_pacman_dead | inky_pacman_dead | clyde_pacman_dead));
 	 ghost_blinky blinky_controller(.*, .PacmanCurrentDir(currentDirection), .Reset(Reset_h), .frame_clk(VGA_VS), .score(blinky_score));
 	 pacman_lives(.*);
 	 
 	 
 	 
 	 
+	 logic is_inky_dead, is_inky;
+	 logic [3:0] inky_is_frightened, inky_sprite;
+	 logic [9:0] inkyPosX, inkyPosY;
 	 
+	 logic is_clyde_dead, is_clyde;
+	 logic [3:0] clyde_is_frightened, clyde_sprite;
+	 logic [9:0] clydePosX, clydePosY;
 	 
 	 
 	 ghost_pinky pinky(.*, .PacmanCurrentDir(currentDirection), .Reset(Reset_h), .frame_clk(VGA_VS), .pacman_dead(pinky_pacman_dead), .score(pinky_score));
-	 
-	 
+	 ghost_inky inky(.*, .PacmanCurrentDir(currentDirection), .Reset(Reset_h), .frame_clk(VGA_VS), .pacman_dead(inky_pacman_dead), .score(inky_score));
+	 ghost_clyde clyde(.*, .PacmanCurrentDir(currentDirection), .Reset(Reset_h), .frame_clk(VGA_VS), .pacman_dead(clyde_pacman_dead), .score(clyde_score));
 	 
 	 
 	 
